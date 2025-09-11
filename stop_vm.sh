@@ -53,7 +53,7 @@ echo "  AWS Region: $AWS_REGION"
 echo ""
 
 echo "⏹ Stopping instance $INSTANCE_ID..."
-aws ec2 stop-instances --instance-ids "$INSTANCE_ID" --region "$AWS_REGION" --profile "$AWS_PROFILE"
+aws ec2 stop-instances --instance-ids "$INSTANCE_ID" --region "$AWS_REGION" --profile "$AWS_PROFILE" --no-cli-pager
 
 aws ec2 wait instance-stopped --instance-ids "$INSTANCE_ID" --region "$AWS_REGION" --profile "$AWS_PROFILE"
 echo "✅ Instance stopped."
