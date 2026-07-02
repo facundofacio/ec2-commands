@@ -1,5 +1,8 @@
 # AWS EC2 Instance Manager
 
+[![CI](https://github.com/facundofacio/ec2-commands/actions/workflows/ci.yml/badge.svg)](https://github.com/facundofacio/ec2-commands/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/facundofacio/ec2-commands/badge)](https://securityscorecards.dev/viewer/?uri=github.com/facundofacio/ec2-commands)
+
 Sistema de scripts para gestionar instancias EC2 de AWS de manera simplificada usando configuraciones predefinidas.
 
 ## Archivos del Sistema

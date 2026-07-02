@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - name: Lint shell scripts
+        run: |
+          shellcheck --severity=warning \
+            ec2.sh common.sh start_vm.sh stop_vm.sh update_aws_ssh.sh \
+            manage_config.sh install.sh \
+            tests/run.sh tests/mock/aws tests/check_no_company_data.sh
+
+  tests:
+    name: Tests + data-leak gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - name: Run test suite
+        run: |
+          chmod +x tests/mock/aws tests/run.sh tests/check_no_company_data.sh
+          ./tests/run.sh
