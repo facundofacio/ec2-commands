@@ -94,6 +94,7 @@ check_dependencies() {
 # Función para verificar si existe la configuración
 check_config_exists() {
     local instance_name="$1"
+    validate_name "$instance_name" || return 1
     local config_file
     config_file="$(resolve_config_file)"
 

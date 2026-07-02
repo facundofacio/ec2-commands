@@ -64,6 +64,7 @@ add_config() {
     fi
     
     local name="$1"
+    validate_name "$name" || return 1
     local instance_id="$2"
     local profile="$3"
     local region="$4"
@@ -93,6 +94,7 @@ remove_config() {
     fi
     
     local name="$1"
+    validate_name "$name" || return 1
     
     if [ ! -f "$CONFIG_FILE" ]; then
         echo "❌ Archivo de configuración no encontrado: $CONFIG_FILE"
@@ -120,6 +122,7 @@ show_config() {
     fi
     
     local name="$1"
+    validate_name "$name" || return 1
     
     if [ ! -f "$CONFIG_FILE" ]; then
         echo "❌ Archivo de configuración no encontrado: $CONFIG_FILE"

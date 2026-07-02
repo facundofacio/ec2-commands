@@ -4,6 +4,15 @@
 
 # shellcheck disable=SC2034  # colores y variables exportadas para los scripts que sourcean common.sh
 
+validate_name() {
+  local name="$1"
+  local re='^[A-Za-z0-9_-]+$'
+  if [[ ! $name =~ $re ]]; then
+    printf "${RED}❌ Error: Nombre inválido '%s'. Solo alfanuméricos, guiones y guiones bajos.${NC}\n" "$name" >&2
+    return 1
+  fi
+}
+
 COMMON_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Colores
@@ -21,6 +30,7 @@ resolve_config_file() {
 # Parsea la línea del config.ini y setea las variables globales.
 load_config() {
   local instance_name="$1"
+  validate_name "$instance_name" || return 1
   local config_file; config_file="$(resolve_config_file)"
 
   if [ ! -f "$config_file" ]; then
