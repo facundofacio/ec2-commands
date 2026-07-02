@@ -7,7 +7,6 @@ export PATH="$TESTS_DIR/mock:$PATH"
 export MOCK_AWS_CONFIG="$TESTS_DIR/fixtures/aws_config"
 
 PASS=0; FAIL=0
-COMMON_DIR="$REPO_DIR"
 
 assert_eq() { # <actual> <expected> <msg>
   if [ "$1" = "$2" ]; then PASS=$((PASS+1)); printf '  ok: %s\n' "$3"
