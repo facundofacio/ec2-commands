@@ -60,6 +60,40 @@ test_load_config_missing_returns_1() {
   rm -rf "$tmp"
 }
 
+test_is_sso_profile_true() {
+  is_sso_profile DevAccess-123456789012
+  assert_ok "$?" "detecta perfil SSO"
+}
+
+test_is_sso_profile_false_for_static() {
+  is_sso_profile legacy-static
+  assert_fail "$?" "perfil estático no es SSO"
+}
+
+test_ensure_session_static_no_login() {
+  local tmp; tmp=$(mktemp -d); local marker="$tmp/marker"
+  MOCK_SESSION_VALID="" MOCK_LOGIN_MARKER="$marker" ensure_aws_session legacy-static
+  assert_ok "$?" "sesión OK para perfil estático"
+  [ -f "$marker" ]; assert_fail "$?" "no se llamó a sso login para estático"
+  rm -rf "$tmp"
+}
+
+test_ensure_session_valid_no_login() {
+  local tmp; tmp=$(mktemp -d); local marker="$tmp/marker"
+  MOCK_SESSION_VALID="1" MOCK_LOGIN_MARKER="$marker" ensure_aws_session DevAccess-123456789012
+  assert_ok "$?" "sesión SSO ya válida"
+  [ -f "$marker" ]; assert_fail "$?" "no se llamó a sso login si la sesión es válida"
+  rm -rf "$tmp"
+}
+
+test_ensure_session_expired_triggers_login() {
+  local tmp; tmp=$(mktemp -d); local marker="$tmp/marker"
+  MOCK_SESSION_VALID="" MOCK_LOGIN_MARKER="$marker" ensure_aws_session DevAccess-123456789012 >/dev/null 2>&1
+  assert_ok "$?" "sesión recuperada tras login"
+  [ -f "$marker" ]; assert_ok "$?" "se llamó a sso login al expirar"
+  rm -rf "$tmp"
+}
+
 for t in $(declare -F | awk '{print $3}' | grep '^test_'); do
   printf '%s\n' "$t"
   "$t"

@@ -42,3 +42,37 @@ load_config() {
   PEM_FILE="${PEM_FILE/#\~/$HOME}"
   CONFIG_FILE="$config_file"
 }
+
+# Retorna 0 si el perfil tiene sso_session configurado (perfil SSO).
+is_sso_profile() {
+  local profile="$1" s
+  s=$(aws configure get sso_session --profile "$profile" 2>/dev/null)
+  [ -n "$s" ]
+}
+
+# Garantiza una sesión válida para el perfil. Login SSO automático si expiró.
+# No hace nada para perfiles estáticos.
+ensure_aws_session() {
+  local profile="$1"
+
+  if ! is_sso_profile "$profile"; then
+    return 0
+  fi
+
+  if aws sts get-caller-identity --profile "$profile" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  printf "${YELLOW}⏳ Sesión SSO expirada para %s. Iniciando login...${NC}\n" "$profile"
+  if ! aws sso login --profile "$profile"; then
+    printf "${RED}❌ El login SSO falló para %s${NC}\n" "$profile" >&2
+    return 1
+  fi
+
+  if aws sts get-caller-identity --profile "$profile" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  printf "${RED}❌ La sesión sigue inválida tras el login${NC}\n" >&2
+  return 1
+}
