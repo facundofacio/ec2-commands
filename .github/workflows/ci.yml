@@ -18,7 +18,7 @@ jobs:
         run: |
           shellcheck --severity=warning \
             ec2.sh common.sh start_vm.sh stop_vm.sh update_aws_ssh.sh \
-            manage_config.sh install.sh \
+            manage_config.sh install.sh _ec2.sh \
             tests/run.sh tests/mock/aws tests/check_no_company_data.sh
 
   tests:
