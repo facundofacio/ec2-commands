@@ -76,3 +76,22 @@ ensure_aws_session() {
   printf "${RED}❌ La sesión sigue inválida tras el login${NC}\n" >&2
   return 1
 }
+
+# Appendea a <dest> cada bloque [..] de <src> cuyo header no exista ya en <dest>.
+# Idempotente: correrlo dos veces no duplica ni pisa perfiles existentes.
+merge_sso_config() {
+  local src="$1" dest="$2" line add=0
+  [ -f "$src" ] || return 1
+  touch "$dest"
+  while IFS= read -r line || [ -n "$line" ]; do
+    if printf '%s' "$line" | grep -qE '^\[.*\]$'; then
+      if grep -qxF "$line" "$dest"; then
+        add=0
+      else
+        add=1
+        printf '\n' >> "$dest"
+      fi
+    fi
+    [ "$add" -eq 1 ] && printf '%s\n' "$line" >> "$dest"
+  done < "$src"
+}

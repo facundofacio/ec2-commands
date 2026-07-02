@@ -94,6 +94,28 @@ test_ensure_session_expired_triggers_login() {
   rm -rf "$tmp"
 }
 
+test_merge_adds_missing_blocks() {
+  local tmp; tmp=$(mktemp -d)
+  printf '[profile default]\nregion = us-east-1\n' > "$tmp/dest"
+  printf '[sso-session default]\nsso_start_url = https://my-org.awsapps.com/start/\n\n[profile ReadOnly-210987654321]\nsso_session = default\n' > "$tmp/src"
+  merge_sso_config "$tmp/src" "$tmp/dest"
+  grep -qxF '[sso-session default]' "$tmp/dest"; assert_ok "$?" "agrega sso-session"
+  grep -qxF '[profile ReadOnly-210987654321]' "$tmp/dest"; assert_ok "$?" "agrega profile ReadOnly"
+  grep -qxF '[profile default]' "$tmp/dest"; assert_ok "$?" "preserva profile default"
+  rm -rf "$tmp"
+}
+
+test_merge_is_idempotent() {
+  local tmp; tmp=$(mktemp -d)
+  printf '[profile default]\nregion = us-east-1\n' > "$tmp/dest"
+  printf '[sso-session default]\nsso_start_url = https://my-org.awsapps.com/start/\n' > "$tmp/src"
+  merge_sso_config "$tmp/src" "$tmp/dest"
+  merge_sso_config "$tmp/src" "$tmp/dest"
+  local n; n=$(grep -cxF '[sso-session default]' "$tmp/dest")
+  assert_eq "$n" "1" "no duplica el bloque al correr dos veces"
+  rm -rf "$tmp"
+}
+
 for t in $(declare -F | awk '{print $3}' | grep '^test_'); do
   printf '%s\n' "$t"
   "$t"
