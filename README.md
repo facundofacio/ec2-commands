@@ -22,7 +22,7 @@ NOMBRE_CONFIGURACION=instance_id:perfil_aws:region:alias_ssh:archivo_pem
 ### Ejemplo:
 
 ```ini
-DEVELOPMENT=i-1234567890abcdef0:sof:us-east-1:dev-server:~/.ssh/my-key.pem
+DEVELOPMENT=i-0123456789abcdef0:legacy-static:us-east-1:dev-server:~/.ssh/my-key.pem
 PRODUCTION=i-abcdef1234567890:prod:eu-west-1:prod-server:~/.ssh/prod-key.pem
 ```
 
@@ -64,7 +64,7 @@ PRODUCTION=i-abcdef1234567890:prod:eu-west-1:prod-server:~/.ssh/prod-key.pem
 ./ec2.sh config add NOMBRE_CONFIGURACION instance_id perfil region alias_ssh archivo_pem
 
 # Ejemplo de agregar configuración
-./ec2.sh config add STAGING i-123456789abcdef0 sof us-west-2 staging-server ~/.ssh/staging-key.pem
+./ec2.sh config add STAGING i-0123456789abcdef0 legacy-static us-west-2 staging-server ~/.ssh/staging-key.pem
 
 # Eliminar configuración
 ./ec2.sh config remove NOMBRE_CONFIGURACION
@@ -88,7 +88,7 @@ PRODUCTION=i-abcdef1234567890:prod:eu-west-1:prod-server:~/.ssh/prod-key.pem
 
 1. Agregar una nueva instancia:
    ```bash
-   ./ec2.sh config add DEVELOPMENT i-1234567890abcdef0 sof us-east-1 dev-server ~/.ssh/my-key.pem
+   ./ec2.sh config add DEVELOPMENT i-0123456789abcdef0 legacy-static us-east-1 dev-server ~/.ssh/my-key.pem
    ```
 
 2. Verificar que se agregó correctamente:
@@ -130,6 +130,58 @@ PRODUCTION=i-abcdef1234567890:prod:eu-west-1:prod-server:~/.ssh/prod-key.pem
 - AWS CLI configurado con los perfiles necesarios
 - SSH configurado
 - Permisos de ejecución en los scripts (`chmod +x *.sh`)
+
+## AWS SSO
+
+> Este repo es público. En tu `config.ini` y en `~/.ec2-cli/sso.config` van tus valores
+> reales, pero esos archivos están gitignoreados y nunca se committean. Los ejemplos de
+> abajo usan valores ficticios.
+
+### Setup, una sola vez por máquina
+
+```bash
+./install.sh                                  # alias `ec2` + autocompletado + ~/.ec2-cli/
+cp sso.config.example ~/.ec2-cli/sso.config   # completá los valores de tu org
+ec2 sso setup                                 # siembra los perfiles SSO en ~/.aws/config
+```
+
+Después apuntá cada instancia al perfil SSO en `config.ini` (ver Migración).
+
+### Uso diario
+
+Sin cambios. Si la sesión SSO expiró, el comando dispara el login solo, imprime
+una URL + código para aprobar en el browser y retoma la operación:
+
+```bash
+ec2 start DEVELOPMENT
+ec2 connect DEVELOPMENT
+ec2 stop DEVELOPMENT
+```
+
+Para refrescar la sesión a mano:
+
+```bash
+ec2 login                # login contra la sso-session default
+ec2 login DEVELOPMENT    # login para el perfil de esa instancia
+```
+
+### Migración desde keys estáticas
+
+Cambiá el `profile` de cada línea del `config.ini` del perfil estático al perfil SSO
+que puede operar EC2. Por ejemplo:
+
+```
+DEVELOPMENT=i-0123456789abcdef0:legacy-static:us-east-1:dev-server:~/.ssh/my-key.pem
+```
+
+pasa a:
+
+```
+DEVELOPMENT=i-0123456789abcdef0:DevAccess-123456789012:us-east-1:dev-server:~/.ssh/my-key.pem
+```
+
+Los perfiles estáticos siguen funcionando: si una línea mantiene un `profile` estático,
+el CLI no intenta login SSO y opera como antes.
 
 ## Características
 

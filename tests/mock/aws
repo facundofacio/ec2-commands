@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Mock del AWS CLI para tests. Comportamiento controlado por variables de entorno:
+#   MOCK_AWS_CONFIG    ruta a un config de fixtures para 'configure get'
+#   MOCK_SESSION_VALID "1" => 'sts get-caller-identity' pasa
+#   MOCK_LOGIN_MARKER  archivo que 'sso login' crea y que valida la sesión
+cmd="$1 $2"
+case "$cmd" in
+  "configure get")
+    key="$3"; profile=""
+    shift 3
+    while [ "$#" -gt 0 ]; do
+      [ "$1" = "--profile" ] && profile="$2"
+      shift
+    done
+    val=$(awk -v prof="$profile" -v k="$key" '
+      $0=="[profile "prof"]"{inb=1; next}
+      /^\[/{inb=0}
+      inb && $1==k{print $3; exit}
+    ' "$MOCK_AWS_CONFIG")
+    [ -n "$val" ] && printf '%s\n' "$val" || exit 1
+    ;;
+  "sts get-caller-identity")
+    if [ "$MOCK_SESSION_VALID" = "1" ] || { [ -n "$MOCK_LOGIN_MARKER" ] && [ -f "$MOCK_LOGIN_MARKER" ]; }; then
+      printf '{"Account":"123456789012"}\n'; exit 0
+    fi
+    exit 255
+    ;;
+  "sso login")
+    [ -n "$MOCK_LOGIN_MARKER" ] && : > "$MOCK_LOGIN_MARKER"
+    printf 'logged in\n'; exit 0
+    ;;
+  *)
+    exit 0
+    ;;
+esac

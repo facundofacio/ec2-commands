@@ -29,4 +29,16 @@ source $SCRIPT_DIR/_ec2.sh" >> ~/.bashrc 2>/dev/null || true
 mkdir -p ~/.ec2-cli
 [ ! -f ~/.ec2-cli/config.ini ] && [ -f "$SCRIPT_DIR/config.ini" ] && cp "$SCRIPT_DIR/config.ini" ~/.ec2-cli/
 
+# Ofrecer bootstrap de SSO si hay sso.config
+if [ -f "$HOME/.ec2-cli/sso.config" ]; then
+  printf "¿Sembrar perfiles SSO en ~/.aws/config ahora? [y/N] "
+  read -r ans
+  case "$ans" in
+    y|Y) "$SCRIPT_DIR/ec2.sh" sso setup ;;
+    *) echo "Podés hacerlo luego con: ec2 sso setup" ;;
+  esac
+else
+  echo "ℹ️  Para SSO: copiá sso.config.example a ~/.ec2-cli/sso.config, completalo y corré 'ec2 sso setup'"
+fi
+
 echo "✅ EC2 CLI instalado. Recarga tu shell: source ~/.zshrc || source ~/.bashrc"

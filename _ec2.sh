@@ -15,6 +15,8 @@ _ec2_commands() {
     'list:Listar configuraciones'
     'ls:Alias de list'
     'config:Gestión de configuraciones'
+    'sso:Gestión de AWS SSO'
+    'login:Login SSO manual'
   )
   config_subcommands=(
     'list:Listar todas las configuraciones'
@@ -22,6 +24,10 @@ _ec2_commands() {
     'remove:Eliminar configuración'
     'show:Mostrar detalles de una configuración'
     'edit:Editar archivo de configuración'
+  )
+  local -a sso_subcommands
+  sso_subcommands=(
+    'setup:Sembrar perfiles SSO en ~/.aws/config'
   )
 
   local config_file="${${(%):-%x}:A:h}/config.ini"
@@ -39,6 +45,12 @@ _ec2_commands() {
         ;;
       config)
         _describe -t config_subcommands 'config subcomandos' config_subcommands
+        ;;
+      login)
+        _describe -t instance_names 'instance name' instance_names
+        ;;
+      sso)
+        _describe -t sso_subcommands 'sso subcomandos' sso_subcommands
         ;;
     esac
   fi

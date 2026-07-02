@@ -7,14 +7,12 @@
 # Directorio del script
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# shellcheck source=/dev/null
+. "$DIR/common.sh"
+
 # Colores para output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No Color
 
 # Función para mostrar ayuda
 show_help() {
@@ -37,6 +35,10 @@ show_help() {
     echo -e "  ${BLUE}config show${NC} <name>            - Mostrar detalles de una configuración"
     echo -e "  ${BLUE}config edit${NC}                   - Editar archivo de configuración"
     echo ""
+    echo -e "${YELLOW}AWS SSO:${NC}"
+    echo -e "  ${BLUE}sso setup${NC}                    - Sembrar perfiles SSO en ~/.aws/config"
+    echo -e "  ${BLUE}login${NC} [instance_name]        - Login SSO manual (refresco de sesión)"
+    echo ""
     echo -e "${YELLOW}UTILIDADES:${NC}"
     echo -e "  ${CYAN}list${NC}                         - Listar configuraciones (alias de 'config list')"
     echo -e "  ${CYAN}restart${NC} <instance_name>       - Reiniciar instancia (stop + start)"
@@ -46,14 +48,14 @@ show_help() {
     echo -e "${YELLOW}EJEMPLOS:${NC}"
     echo -e "  $0 start DEVELOPMENT"
     echo -e "  $0 stop PRODUCTION"
-    echo -e "  $0 config add STAGING i-123456789 sof us-west-2 staging-server ~/.ssh/key.pem"
+    echo -e "  $0 config add STAGING i-123456789 legacy-static us-west-2 staging-server ~/.ssh/key.pem"
     echo -e "  $0 restart DEVELOPMENT"
     echo -e "  $0 connect DEVELOPMENT"
 }
 
 # Función para mostrar configuraciones disponibles
 show_available_configs() {
-    local config_file="$DIR/config.ini"
+    local config_file="$(resolve_config_file)"
     if [ -f "$config_file" ]; then
         echo -e "${YELLOW}Configuraciones disponibles:${NC}"
         grep "^[A-Za-z0-9_-][A-Za-z0-9_-]*=" "$config_file" | cut -d'=' -f1 | sed 's/^/  /' | head -10
@@ -90,8 +92,8 @@ check_dependencies() {
 # Función para verificar si existe la configuración
 check_config_exists() {
     local instance_name="$1"
-    local config_file="$DIR/config.ini"
-    
+    local config_file="$(resolve_config_file)"
+
     if [ ! -f "$config_file" ]; then
         echo -e "${RED}❌ Archivo de configuración no encontrado.${NC}"
         echo -e "${YELLOW}Usa 'config edit' para crear el archivo de configuración.${NC}"
@@ -117,12 +119,14 @@ get_instance_status() {
     fi
     
     # Usar el script de configuración para obtener los datos
-    local config_line=$(grep "^$instance_name=" "$DIR/config.ini" | head -1)
+    local config_line=$(grep "^$instance_name=" "$(resolve_config_file)" | head -1)
     local config_value=$(echo "$config_line" | cut -d'=' -f2-)
     local instance_id=$(echo "$config_value" | cut -d':' -f1)
     local aws_profile=$(echo "$config_value" | cut -d':' -f2)
     local aws_region=$(echo "$config_value" | cut -d':' -f3)
-    
+
+    ensure_aws_session "$aws_profile" || return 1
+
     echo -e "${BLUE}🔍 Consultando estado de la instancia...${NC}"
     
     local status=$(aws ec2 describe-instances \
@@ -189,7 +193,7 @@ connect_ssh() {
     fi
     
     # Obtener alias SSH de la configuración
-    local config_line=$(grep "^$instance_name=" "$DIR/config.ini" | head -1)
+    local config_line=$(grep "^$instance_name=" "$(resolve_config_file)" | head -1)
     local config_value=$(echo "$config_line" | cut -d'=' -f2-)
     local ssh_alias=$(echo "$config_value" | cut -d':' -f4)
     
@@ -226,6 +230,41 @@ restart_instance() {
     else
         echo -e "${RED}❌ Error al detener la instancia${NC}"
         return 1
+    fi
+}
+
+# Bootstrap: siembra los perfiles SSO en ~/.aws/config desde ~/.ec2-cli/sso.config
+sso_setup() {
+    local sso_src="$HOME/.ec2-cli/sso.config"
+    local aws_config="$HOME/.aws/config"
+
+    if [ ! -f "$sso_src" ]; then
+        echo -e "${RED}❌ No se encontró $sso_src${NC}"
+        echo -e "${YELLOW}Copiá $DIR/sso.config.example a $sso_src, completá los valores de la org y volvé a correr 'ec2 sso setup'.${NC}"
+        return 1
+    fi
+
+    mkdir -p "$HOME/.aws"
+    touch "$aws_config"
+    cp "$aws_config" "$aws_config.bak"
+    echo -e "${BLUE}🗄  Backup de ~/.aws/config en ~/.aws/config.bak${NC}"
+
+    merge_sso_config "$sso_src" "$aws_config"
+    echo -e "${GREEN}✅ Perfiles SSO sembrados en ~/.aws/config${NC}"
+}
+
+# Login SSO manual. Con nombre de instancia usa su perfil; sin nombre, la sso-session default.
+sso_login() {
+    local instance_name="$1"
+    if [ -n "$instance_name" ]; then
+        load_config "$instance_name" || return 1
+        if ! is_sso_profile "$AWS_PROFILE"; then
+            echo -e "${YELLOW}⚠️  El perfil '$AWS_PROFILE' no es SSO; no hay login que hacer.${NC}"
+            return 0
+        fi
+        aws sso login --profile "$AWS_PROFILE"
+    else
+        aws sso login --sso-session default
     fi
 }
 
@@ -300,6 +339,17 @@ case "$1" in
         connect_ssh "$2"
         ;;
     
+    "sso")
+        case "$2" in
+            "setup") sso_setup ;;
+            *) echo -e "${RED}❌ Subcomando desconocido: sso $2${NC}"; echo "Uso: $0 sso setup" ;;
+        esac
+        ;;
+
+    "login")
+        sso_login "$2"
+        ;;
+
     "config")
         shift
         "$DIR/manage_config.sh" "$@"
