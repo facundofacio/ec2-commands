@@ -30,7 +30,9 @@ _ec2_commands() {
     'setup:Sembrar perfiles SSO en ~/.aws/config'
   )
 
-  local config_file="${${(%):-%x}:A:h}/config.ini"
+  # Misma resolución que common.sh: ~/.ec2-cli/ tiene prioridad, si no el repo.
+  local config_file="$HOME/.ec2-cli/config.ini"
+  [[ -f $config_file ]] || config_file="${${(%):-%x}:A:h}/config.ini"
   local -a instance_names
   if [[ -f $config_file ]]; then
     instance_names=($(grep -E '^[A-Za-z0-9_-]+=' "$config_file" | cut -d'=' -f1))
