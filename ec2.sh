@@ -55,11 +55,13 @@ show_help() {
 
 # Función para mostrar configuraciones disponibles
 show_available_configs() {
-    local config_file="$(resolve_config_file)"
+    local config_file
+    config_file="$(resolve_config_file)"
     if [ -f "$config_file" ]; then
         echo -e "${YELLOW}Configuraciones disponibles:${NC}"
         grep "^[A-Za-z0-9_-][A-Za-z0-9_-]*=" "$config_file" | cut -d'=' -f1 | sed 's/^/  /' | head -10
-        local total=$(grep -c "^[A-Za-z0-9_-][A-Za-z0-9_-]*=" "$config_file")
+        local total
+        total=$(grep -c "^[A-Za-z0-9_-][A-Za-z0-9_-]*=" "$config_file")
         if [ "$total" -gt 10 ]; then
             echo "  ... y $((total - 10)) más"
         fi
@@ -92,7 +94,8 @@ check_dependencies() {
 # Función para verificar si existe la configuración
 check_config_exists() {
     local instance_name="$1"
-    local config_file="$(resolve_config_file)"
+    local config_file
+    config_file="$(resolve_config_file)"
 
     if [ ! -f "$config_file" ]; then
         echo -e "${RED}❌ Archivo de configuración no encontrado.${NC}"
@@ -119,17 +122,23 @@ get_instance_status() {
     fi
     
     # Usar el script de configuración para obtener los datos
-    local config_line=$(grep "^$instance_name=" "$(resolve_config_file)" | head -1)
-    local config_value=$(echo "$config_line" | cut -d'=' -f2-)
-    local instance_id=$(echo "$config_value" | cut -d':' -f1)
-    local aws_profile=$(echo "$config_value" | cut -d':' -f2)
-    local aws_region=$(echo "$config_value" | cut -d':' -f3)
+    local config_line
+    config_line=$(grep "^$instance_name=" "$(resolve_config_file)" | head -1)
+    local config_value
+    config_value=$(echo "$config_line" | cut -d'=' -f2-)
+    local instance_id
+    instance_id=$(echo "$config_value" | cut -d':' -f1)
+    local aws_profile
+    aws_profile=$(echo "$config_value" | cut -d':' -f2)
+    local aws_region
+    aws_region=$(echo "$config_value" | cut -d':' -f3)
 
     ensure_aws_session "$aws_profile" || return 1
 
     echo -e "${BLUE}🔍 Consultando estado de la instancia...${NC}"
-    
-    local status=$(aws ec2 describe-instances \
+
+    local status
+    status=$(aws ec2 describe-instances \
         --instance-ids "$instance_id" \
         --region "$aws_region" \
         --profile "$aws_profile" \
@@ -193,9 +202,12 @@ connect_ssh() {
     fi
     
     # Obtener alias SSH de la configuración
-    local config_line=$(grep "^$instance_name=" "$(resolve_config_file)" | head -1)
-    local config_value=$(echo "$config_line" | cut -d'=' -f2-)
-    local ssh_alias=$(echo "$config_value" | cut -d':' -f4)
+    local config_line
+    config_line=$(grep "^$instance_name=" "$(resolve_config_file)" | head -1)
+    local config_value
+    config_value=$(echo "$config_line" | cut -d'=' -f2-)
+    local ssh_alias
+    ssh_alias=$(echo "$config_value" | cut -d':' -f4)
     
     echo -e "${BLUE}🔗 Conectando a $ssh_alias...${NC}"
     

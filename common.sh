@@ -2,6 +2,8 @@
 # Librería compartida para ec2-commands: resolución de config, parseo,
 # y lógica de sesión AWS SSO. Portable macOS (bash 3.2) + Ubuntu.
 
+# shellcheck disable=SC2034  # colores y variables exportadas para los scripts que sourcean common.sh
+
 COMMON_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Colores

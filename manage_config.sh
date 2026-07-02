@@ -127,20 +127,27 @@ show_config() {
     fi
     
     # Buscar configuración
-    local config_line=$(grep "^$name=" "$CONFIG_FILE" | head -1)
-    
+    local config_line
+    config_line=$(grep "^$name=" "$CONFIG_FILE" | head -1)
+
     if [ -z "$config_line" ]; then
         echo "❌ Error: Configuración '$name' no encontrada"
         return 1
     fi
-    
+
     # Extraer y mostrar valores
-    local config_value=$(echo "$config_line" | cut -d'=' -f2-)
-    local instance_id=$(echo "$config_value" | cut -d':' -f1)
-    local profile=$(echo "$config_value" | cut -d':' -f2)
-    local region=$(echo "$config_value" | cut -d':' -f3)
-    local ssh_alias=$(echo "$config_value" | cut -d':' -f4)
-    local pem_file=$(echo "$config_value" | cut -d':' -f5)
+    local config_value
+    config_value=$(echo "$config_line" | cut -d'=' -f2-)
+    local instance_id
+    instance_id=$(echo "$config_value" | cut -d':' -f1)
+    local profile
+    profile=$(echo "$config_value" | cut -d':' -f2)
+    local region
+    region=$(echo "$config_value" | cut -d':' -f3)
+    local ssh_alias
+    ssh_alias=$(echo "$config_value" | cut -d':' -f4)
+    local pem_file
+    pem_file=$(echo "$config_value" | cut -d':' -f5)
     
     echo "📋 Configuración '$name':"
     echo "  Instance ID: $instance_id"
