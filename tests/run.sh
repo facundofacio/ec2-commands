@@ -122,4 +122,5 @@ for t in $(declare -F | awk '{print $3}' | grep '^test_'); do
 done
 
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
+"$TESTS_DIR/check_no_company_data.sh" || FAIL=$((FAIL+1))
 [ "$FAIL" -eq 0 ]
