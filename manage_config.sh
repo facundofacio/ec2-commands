@@ -24,7 +24,7 @@ show_help() {
     echo "  <name> <instance_id> <profile> <region> <ssh_alias> <pem_file>"
     echo ""
     echo "Ejemplo:"
-    echo "  $0 add DEVELOPMENT i-0123456789abcdef0 sof us-east-1 dev-server ~/.ssh/my-key.pem"
+    echo "  $0 add DEVELOPMENT i-0123456789abcdef0 legacy-static us-east-1 dev-server ~/.ssh/my-key.pem"
 }
 
 # Función para listar configuraciones
@@ -159,7 +159,7 @@ edit_config() {
 # Formato: INSTANCE_NAME=instance_id:profile:region:ssh_host_alias:pem_file
 
 # Ejemplo:
-# DEVELOPMENT=i-0123456789abcdef0:sof:us-east-1:dev-server:~/.ssh/my-key.pem
+# DEVELOPMENT=i-0123456789abcdef0:legacy-static:us-east-1:dev-server:~/.ssh/my-key.pem
 # PRODUCTION=i-abcdef1234567890:prod:eu-west-1:prod-server:~/.ssh/prod-key.pem
 
 EOF

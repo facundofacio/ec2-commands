@@ -22,7 +22,7 @@ NOMBRE_CONFIGURACION=instance_id:perfil_aws:region:alias_ssh:archivo_pem
 ### Ejemplo:
 
 ```ini
-DEVELOPMENT=i-0123456789abcdef0:sof:us-east-1:dev-server:~/.ssh/my-key.pem
+DEVELOPMENT=i-0123456789abcdef0:legacy-static:us-east-1:dev-server:~/.ssh/my-key.pem
 PRODUCTION=i-abcdef1234567890:prod:eu-west-1:prod-server:~/.ssh/prod-key.pem
 ```
 
@@ -64,7 +64,7 @@ PRODUCTION=i-abcdef1234567890:prod:eu-west-1:prod-server:~/.ssh/prod-key.pem
 ./ec2.sh config add NOMBRE_CONFIGURACION instance_id perfil region alias_ssh archivo_pem
 
 # Ejemplo de agregar configuración
-./ec2.sh config add STAGING i-123456789abcdef0 sof us-west-2 staging-server ~/.ssh/staging-key.pem
+./ec2.sh config add STAGING i-0123456789abcdef0 legacy-static us-west-2 staging-server ~/.ssh/staging-key.pem
 
 # Eliminar configuración
 ./ec2.sh config remove NOMBRE_CONFIGURACION
@@ -88,7 +88,7 @@ PRODUCTION=i-abcdef1234567890:prod:eu-west-1:prod-server:~/.ssh/prod-key.pem
 
 1. Agregar una nueva instancia:
    ```bash
-   ./ec2.sh config add DEVELOPMENT i-0123456789abcdef0 sof us-east-1 dev-server ~/.ssh/my-key.pem
+   ./ec2.sh config add DEVELOPMENT i-0123456789abcdef0 legacy-static us-east-1 dev-server ~/.ssh/my-key.pem
    ```
 
 2. Verificar que se agregó correctamente:
