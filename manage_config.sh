@@ -2,7 +2,10 @@
 
 # Directorio del script
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$DIR/config.ini"
+
+# shellcheck source=/dev/null
+. "$DIR/common.sh"
+CONFIG_FILE="$(resolve_config_file)"
 
 # Función para mostrar ayuda
 show_help() {

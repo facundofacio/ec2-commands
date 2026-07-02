@@ -1,0 +1,15 @@
+# Plantilla de configuración AWS SSO.
+# Copiá este archivo a ~/.ec2-cli/sso.config, completá los valores de tu org
+# y corré 'ec2 sso setup' para sembrarlos en ~/.aws/config.
+# Pedí los valores reales al equipo; NO los commitees (este repo es público).
+
+[sso-session default]
+sso_start_url = <SSO_START_URL>
+sso_region = <SSO_REGION>
+sso_registration_scopes = sso:account:access
+
+[profile <ROLE_NAME>-<ACCOUNT_ID>]
+sso_session = default
+sso_account_id = <ACCOUNT_ID>
+sso_role_name = <ROLE_NAME>
+region = <REGION>
