@@ -18,8 +18,10 @@ jobs:
         run: |
           shellcheck --severity=warning \
             ec2.sh common.sh start_vm.sh stop_vm.sh update_aws_ssh.sh \
-            manage_config.sh install.sh _ec2.sh \
+            manage_config.sh install.sh \
             tests/run.sh tests/mock/aws tests/check_no_company_data.sh
+      - name: Lint zsh completion script
+        run: shellcheck --severity=warning -e SC2296,SC2298,SC1087,SC2207,SC2034,SC2154,SC2148 _ec2.sh
 
   tests:
     name: Tests + data-leak gate
