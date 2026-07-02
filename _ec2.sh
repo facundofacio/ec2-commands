@@ -1,5 +1,5 @@
 #compdef ec2.sh
-
+# shellcheck shell=zsh disable=SC2034,SC2154
 # Autocompletado para ec2.sh
 _ec2_commands() {
   local -a commands config_subcommands
